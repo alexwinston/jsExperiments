@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+  <style>
+    html, body {
+      overflow:hidden;
+      background-color: black;
+    }
+
+    html, body, div, canvas {
+      margin: 0;
+      padding: 0;
+    }
+
+    canvas {
+      /* border: 1px solid red; */
+      border: 1px solid red;
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      /* image-rendering: pixelated;
+      image-rendering: crisp-edges; */
+    }
+
+    .jsANSI {
+      font-family: "Courier New", monospace;
+      /* font-family: "Cascadia Code", Menlo, monospace; */
+      /* font-size: 18px; */
+      font-size: 32px;
+	    background-color: #000;
+      /* font-family: "DejaVuSansMono", "DejaVu Sans Mono", monospace; */
+      white-space: pre;
+      text-align: center;
+      line-height: 1;
+      letter-spacing: 0px;
+      display: inline-block;
+    }
+  </style>
+<head>
+  <!-- <script src="https://unpkg.com/geometric@2.2.8/build/geometric.min.js"></script> -->
+  <!-- <script src="//cdn.jsdelivr.net/npm/phaser@3.52.0/dist/phaser.min.js"></script> -->
+  <!-- <script src="quaternion.js"></script> -->
+  <!-- <script src="move3.js"></script> -->
+  <!-- <script src="rotate.js"></script> -->
+  <!-- <script src="escape.js"></script> -->
+</head>
+<body>
+  <canvas id="canvas" width="1024" height="672"></canvas>
+</body>
+</html>
+<script src="matrix.js" type="module"></script>
+<!-- <script src="jsANSI-test1.js" type="module"></script> -->
+<script src="vector2.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bignumber.js/9.1.1/bignumber.min.js"></script>
+
+<!-- <script src="ansi-parse3.js"></script> -->
+<!-- <script src="jsANSI-stream3.js" type="module"></script> -->
+
+<!-- <script src="dist/src/test.js" type="module"></script> -->

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+    <style>
+    </style>
+<head>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bignumber.js/9.1.1/bignumber.min.js"></script>
+
+    <script src="cryptography.js"></script>
+    <script src="cryptography-visualize.js"></script>
+
+    <script src="noita.js"></script>
+    <!-- <script src="noita-vigenere.js"></script> -->
+
+    <!-- https://dev.to/krowemoh/a-vue3-tutorial-01-using-vue-without-a-build-step-2kkm -->
+    <!-- <script src="https://unpkg.com/vue@3"></script> -->
+    <script src="https://unpkg.com/vue@2"></script>
+</head>
+<body>
+  <body>
+    <script>
+      class Worker {
+        constructor(name, position, office, age = 45) {
+          this.name = name
+          this.position = position
+          this.office = office
+          this.age = age
+        }
+        live() {
+          this.age++
+        }
+      }
+      const workers = () => [
+        new Worker("Airi Satou", "Accountant", "Tokyo", 33),
+        new Worker("Angelica Ramos", "Chief Executive Officer (CEO)", "London", 47),
+        new Worker("Cedric Kelly", "Senior Javascript Developer", "Edinburgh", 22),
+        new Worker("Jennifer Chang", "Regional Director", "Singapore", 28),
+      ]
+    </script>
+    
+    <!-- https://www.smashingmagazine.com/2020/01/data-components-vue-js/ -->
+    <script type="text/x-template" id="hello-template" :worker="worker" >
+      <div>Hello, {{worker.name}}! Age: {{worker.age}}
+        <button v-on:click="worker.live()">Live</button>
+      </div>
+    </script>
+    
+    <div id="app">
+      <!-- <h1>Hello, {{name}}!</h1> -->
+      <hello :worker="ceo"></hello>
+      <table>
+        <thead>
+          <th>Index</th>
+          <th>Name</th>
+          <th>Position</th>
+          <th>Office</th>
+          <th>Age</th>
+        </thead>
+        <tbody>
+          <tr v-for="(worker, index) in workers">
+            <td>{{index}}</td>
+            <td><hello :worker="worker"></hello></td>
+            <td>{{worker.position}}</td>
+            <td>{{worker.office}}</td>
+            <td>{{worker.age}} <button v-on:click="live(worker)">Live</button></td>
+            <td>{{worker.age}} <button v-on:click="worker.live()">Live</button></td>
+            <td><button v-on:click="fire(worker)">Fire</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <script>
+      Vue.component('hello', {
+        template: '#hello-template',
+        props: {
+          worker: Worker   
+        }
+      })
+      new Vue({
+        el: '#app',
+        data: {
+          ceo: new Worker("Alex Winston"),
+          workers: workers(),
+        },
+        methods: {
+          live(worker) { worker.live() },
+          fire(worker) { console.log(this.workers); this.workers.splice(this.workers.indexOf(worker),1) }
+        }
+      })
+    </script>
+</body>
+</body>
+</html>

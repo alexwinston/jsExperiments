@@ -1,0 +1,29 @@
+
+{
+    const ct = "-:-:-;?-\/ \\\/\\\/?\/\"? o?\/\"??:\\:. \\\/\\\/:-:-:-;??\\\/?\/\"-\/ :0\/-\\\/\"-:- -:-:-:-;?-\/ \/=():_] :\\:o:, -:-:-;? \\\/\\\/()\/\":_o: :o?[\/-\\:nn? :nn()\/\"? \/\"?o:. :\/=():\\::_-\/ \\\/\\\/? :-;\/-\\o: :o??:\\: ::\\: -:-::nn? -:-() ?-:-():0 -:-:-;?:nn. :nn\/-\\-\/:o? -:-:-;?:\\:, ?-:-?\/\":\\:\/-\\:_ :-;\/-\\:0:0: :\\:???[():_] :_o: :-;\/-\\\\\/? :o??:\\: :-;\/-\\\/\":\\:????o: :o-\/ ():_]\/\" :nn:_]:_-:-:-:-:_]o:?\/-\\:\\:o: :\\:()-:- -:-:-;? \/\"?o:."
+    console.log(new Set(ct))
+    console.log(ct)
+    const ct2 = ct
+        .replaceAll("/-\\", "A")
+        .replaceAll("\\/\\/", "W")
+        .replaceAll("\\/", "V")
+        .replaceAll("()", "O")
+        .replaceAll(":nn", "M")
+        .replaceAll(":\\:", "N")
+        .replaceAll(":_]", "U")
+        .replaceAll(":_", "L")
+        .replaceAll(":-;", "H")
+        .replaceAll("-:-", "T")
+        .replaceAll("-/", "Y")
+        .replaceAll("???", "ESS")
+        .replaceAll("?", "E")
+        .replaceAll("o:", "D")
+        .replaceAll(":o", "B")
+        .replaceAll("[", "C")
+        .replaceAll(":0", "P")
+        .replaceAll("/=", "F")
+        .replaceAll(":", "I")
+        .replaceAll("/\"", "R")
+        
+    console.log(ct2)
+}
