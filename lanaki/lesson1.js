@@ -1,0 +1,5 @@
+{
+    const ct = "VWHAZSJXIH SKIMF MWCGMV WOJSIFAGFJAQ QMNRJKZMGRSWMF. JATW XHAWF. FIQQWFFXIH FKHBAOZ JSMAHHF. TGAHPKD XMAWOVFSARF XHKIMAFS.".toLowerCase()
+    console.log(ct)
+    console.log(new Frequencies(ct))
+}

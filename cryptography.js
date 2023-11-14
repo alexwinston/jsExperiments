@@ -78,6 +78,70 @@ function decipher(ct, kt, az) {
     return pt//.join("")
 }
 
+class Caesar {
+    static encrypt(pt, k, az = az26, shift = Shift.additive) {
+        const az_offset = ABC.offset(az, -k)
+        // return Shift.cipher(pt, az[0], az_offset, [shift])
+        return Vigenere.encrypt(pt, az[0], az_offset)
+    }
+
+    static decrypt(ct, k, az = az26, shift = Shift.additive) {
+        const az_offset = ABC.offset(az, -k)
+        // return Shift.decipher(ct, az[0], az_offset, [shift])
+        return Vigenere.decrypt(ct, az[0], az_offset)
+    }
+
+    static levels(ct, size, az) {
+        const levels = [...Array(size)].map(_ => [])
+        console.log(levels)
+        for (var i = 0; i < ct.length; i++) {
+            const cc = ct[i]
+            const level = levels[Math.floor(cc / az.length)]
+            // console.log(cc, level)
+            level.push({ cc: cc, i: i })
+        }
+        return levels
+    }
+
+    static rundown(ct, az) {
+        const rundown = []
+        for (var i = 0; i < az.length; i++) {
+            const p = []
+            const az_shift = shift(az, i)
+            // console.log(az_shift)
+            for (var j = 0; j < ct.length; j++) {
+                const c = az_shift[ct[j] % az.length]
+                p.push(c)
+            }
+            const s = p.join("")
+            rundown.push({ s: s, fitness: Monograms.fitness(s) })
+        }
+        return rundown.sort((a, b) => b.fitness - a.fitness)
+    }
+
+    static arrange(levels, az) {
+        console.log("arrange", levels, az)
+        const alphabets = [...Array(levels.length)].map(_ => az.split(""))
+        console.log(alphabets)
+
+        const generatrices = levels.map(v => Caesar.rundown(v.map(v => v.cc), az25)[0])
+        console.log(generatrices)
+        const pt = []
+        for (var i = 0; i < levels.length; i++) {
+            const level = levels[i]
+            for (var j = 0; j < level.length; j++) {
+                const c = generatrices[i].s[j]
+                const cc = level[j].cc
+                // console.log(c, cc)
+                pt[level[j].i] = c
+                alphabets[i] = ABC.offset(ABC.shift(az, c), -Math.floor(cc % az.length))
+                // console.log("alphabet", alphabets)
+            }
+        }
+        return pt.join("")
+    }
+}
+
 class Shift {
     // TODO additive(n) k + n, k - n
     static additive = {
@@ -132,6 +196,35 @@ class Shift {
     static encrypt = Shift.cipher
     static decrypt = Shift.decipher
 }
+
+class Quagmire {
+    static encrypt(pt, kt, az_pt = az26, az_kt = az26) {
+        // console.log("cipher", pt, kt, az_pt, az_kt)
+        // const pi = pt.split("").map(v => az_pt.indexOf(v))
+        const pi = pt.split("").reduce((r,v) => { const i = az_pt.indexOf(v); if (i >= 0) { r.push(i) }; return r }, [])
+        const k = kt.split("").map(v => az_kt.indexOf(v))
+        const ki = pi.map((v, i) => k[i % (k.length)])
+        const sums = pi.map((v, i) => pi[i] + ki[i])
+        const mods = sums.map(v => v % (az_kt.length))
+        const ct = mods.map(v => az_kt[v])
+    
+        return ct.join("")
+    }
+
+    static decrypt(ct, kt, az_pt = az26, az_kt = az26) {
+        // console.log("decipher", ct, kt, az_pt, az_kt)
+        // const ci = ct.split("").map(v => az_kt.indexOf(v))
+        const ci = ct.split("").reduce((r,v) => { const i = az_kt.indexOf(v); if (i >= 0) { r.push(i) }; return r }, [])
+        const k = kt.split("").map(v => az_kt.indexOf(v))
+        const ki = ci.map((v, i) => k[i % (k.length)])
+        const sums = ci.map((v, i) => (ci[i] - ki[i]) + az_kt.length)
+        const mods = sums.map((v, i) => v % (az_kt.length))
+        const pt = mods.map(v => az_pt[v])
+    
+        return pt.join("")
+    }
+}
+
 
 class Vigenere {
     static cipher(pt, kt, az = az26) {
@@ -280,8 +373,8 @@ class Mod {
 // https://macs4200.org/chapters/04/5/multiplicative-cipher.html
 class Multiplicative {
     static f = (m) => ({
-        shift: (p, k, i, az = az26) => (p * m).mod(az.length),
-        unshift: (p, k, i, az = az26) => Multiplicative.inverse(p, m, az.length)
+        shift: (p, k, i, az = az26) => ABC.wrap(az, ((p + 1) * m).mod(az.length) - 1),
+        unshift: (p, k, i, az = az26) => ABC.wrap(az, Multiplicative.inverse((p + 1), m, az.length) - 1)
     })
 
     static encrypt(pt, k, az = az26) {
@@ -378,6 +471,7 @@ class Numbers {
     }
 
     static gcd(a, b) {
+        // console.log(a, b)
         if (a == 0)
             return b;
         return Numbers.gcd(b % a, a);
@@ -405,6 +499,11 @@ class ABC {
         // return Array.from({ length:256 }, (_, i) => String.fromCharCode(i)).join("").shift(offset).slice(0, length)
     }
 
+    static wrap(az, i) {
+        if (i >= 0) { return i }
+        return i + az.length 
+    }
+
     // TODO rename to offset?
     static shift(az, c) {
         return cshift(az, c).join("")
@@ -426,7 +525,12 @@ class ABC {
         return s.split("").filter(v => az.split("").includes(v)).join("")
     }
 
-    static key(k, az) {
+    static mixed(k, az = az26) {
+        const ks = [...new Set(k)]
+        return this.key(ks, az).step(ks.length)
+    }
+
+    static key(k, az = az26) {
         return abc(k, az).join("")
     }
 
@@ -557,7 +661,7 @@ class Frequencies {
             }
             phi_o += i_phi_o
         }
-        // console.log(phi_o)
+        console.log("phi_o", phi_o)
 
         const length = this.s.length / width
         // console.log(length)
@@ -573,6 +677,84 @@ class Frequencies {
             }
         }
         return matches.length / s.length
+    }
+}
+
+class Arrays {
+    static zip(a, b) {
+        var sum = 0
+
+        const length = Math.min(a.length, b.length)
+        for (var i = 0; i < length; i++) {
+            if (a[i] == b[i]) { sum++ }
+        }
+        return sum
+    }
+}
+
+// https://colab.research.google.com/drive/15QSZypHqLNcu7SjPKEH9aBwWWZWcbc7i
+class Kappa {
+    static test(msg1, msg2, offset) {
+        var m1 = msg1.slice(offset)
+        // console.log("m1", m1)
+        const m2 = msg2.slice(0, m1.length)
+        // console.log("m2", m2)
+        m1 = m1.slice(0, msg2.length)
+        // console.log("m1", m1)
+        // console.log(offset)
+        return [Arrays.zip(m1, m2), m1.length]
+    }
+    
+    static periodic(strings, start = 0, end = 15) {
+        const bounds = Array.from({ length: end - start + 1 }, (_,i) => start + i)
+    
+        const results_y = []
+        for (const i of bounds) {
+            var matches = 0
+            var checks = 0
+            for (const msg1 of strings) {
+                for (const msg2 of strings) {
+                    const match_check = Kappa.test(msg1, msg2, i)
+                    matches += match_check[0]
+                    checks += match_check[1]
+                }
+            }
+            results_y.push(1000 * matches / checks)
+        }
+        // return results_y.slice(0,-1)
+        return results_y
+    }
+
+    static positional(strings, start = 0) {
+        var matches = 0
+        var checks = 0
+        for (var i = 0; i < strings.length - 1; i++) {
+            for (var j = i + 1; j < strings.length; j++) {
+                const match_check = Kappa.test(strings[i].slice(start), strings[j].slice(start), 0)
+                // console.log(i,j)
+                matches += match_check[0]
+                checks += match_check[1]
+            }
+        }
+        return { matches: matches, checks: checks, coincidence: Math.floor(matches * 1000 / checks) }
+    }
+
+    static autocorrelation(strings, start = 0, end = 15) {
+        const bounds = Array.from({ length: end - start + 1 }, (_,i) => start + i)
+        const range = Array.from({ length: strings.length }, (_,i) => i)
+
+        const results_y = []
+        for (const i of bounds) {
+            var matches = 0
+            var checks = 0
+            for (const j of range) {
+                const match_check = Kappa.test(strings[j], strings[j], i)
+                matches += match_check[0]
+                checks += match_check[1]
+            }
+            results_y.push(1000 * matches / checks)
+        }
+        return results_y
     }
 }
 
@@ -658,7 +840,7 @@ class Hilbert {
 }
 
 Number.prototype.mod = function (n) {
-    return ((this % n) + n) % n
+    return ((this % n) + n) % n;
 }
 
 class Gronsfeld {
@@ -890,6 +1072,116 @@ const prune = function(a, m) {
         m.set(k2, indexes2.deduplicate(indexes))
     }
     prune(a.slice(1), m)
+}
+
+// http://practicalcryptography.com/cryptanalysis/letter-frequencies-various-languages/english-letter-frequencies/
+class English {
+    static letters = az26
+    static frequencies = [0.0815, 0.0144, 0.0276, 0.0379, 0.1311, 0.0292, 0.0199, 0.0526, 0.0635, 0.0013, 0.0042, 0.0339, 0.0254, 0.0710, 0.08, 0.0198, 0.0012, 0.0683, 0.061, 0.1047, 0.0246, 0.0092, 0.0154, 0.0017, 0.0198, 0.0008]
+    // static letters = "ETAOINSHRLDCUMFGPWYBVKJXZQ"
+    // static frequencies = [529117365,390965105,374061888,326627740,320410057,313720540,294300210,277000841,216768975,183996130,169330528,138416451,117295780,110504544,95422055,91258980,90376747,79843664,75294515,70195826,46337161,35373464,9613410,8369915,4975847,4550166]
+
+    static frequency(c) {
+        const i = this.letters.indexOf(c)
+        if (i == -1) { return 0 }
+
+        return this.frequencies[this.letters.indexOf(c)]
+    }
+}
+
+class Monograms {
+    // The higher the fitness score the more language like it is
+    static fitness(pt, language = English) {
+        const fitness = pt.map(v => language.frequency(v))
+        // const ngrams = pt.ngrams(1)
+        // const fitness = ngrams.map(v => Math.log(v.indexes.size / English.frequency(v.s)))
+        // console.log(pt, fitness)
+        return fitness.reduce((p, c) => p + c, 0)
+    }
+
+    static key(ct, length, az = az26) {
+        const key = []
+        for (var i = 0; i < length; i++) {
+            const ct_nth = ct.substring(i).nth(length)
+            // const ct5 = ct8.substring(1).nth(5)
+            const fitnesses = []
+            for (var c of az) {
+                fitnesses.push({ c: c, fitness: this.fitness(Vigenere.decrypt(ct_nth, c, az)) })
+            }
+            const sorted = fitnesses.sort((a, b) => b.fitness - a.fitness || isNaN(b.fitness) - isNaN(a.fitness))
+            // console.log(sorted)
+            key.push(sorted[0].c)
+        }
+        return key.join("")
+    }
+}
+
+
+// http://practicalcryptography.com/cryptanalysis/text-characterisation/quadgrams/
+class Quadgrams {
+    static grams = new Map()
+
+    static async load(file) {
+        console.log("Quadgrams.load", file)
+        await fetch(file)
+            .then(response => response.text())
+            .then(data => {
+                this.grams.clear()
+                for (const i of data.split("\n")) {
+                    const gram = i.split(" ")
+                    this.grams.set(gram[0], parseInt(gram[1]))
+                }
+                const n = Array.from(this.grams.values()).reduce((p, c) => p + c, 0)
+                // console.log(n)
+                for (const [k, v] of this.grams) {
+                    this.grams.set(k, -Math.log10(this.grams.get(k) / n))
+                }
+                this.floor = Math.log10(0.01 / n)
+                // console.log(this.grams.get("NTHE")) // 11234972
+            })
+    }
+
+    // The fitness is more language like the closer it is to zero
+    static fitness(pt, unknown = this.floor) {
+        // const fitness = pt.map(v => English.frequency(v))
+        const ngrams = pt.ngrams(4)
+        // console.log(ngrams)
+        const fitness = ngrams.map(v => this.grams.has(v.s) ? this.grams.get(v.s) : unknown)
+        // console.log(pt, fitness)
+        return fitness.reduce((p, c) => p + c, 0)
+    }
+}
+
+class Ngram {
+    constructor(s) {
+        this.s = s
+        // this.difference = s.split("").map(v => v.charCodeAt(0) - 32).difference()[0]
+        this.indexes = new Set()
+    }
+}
+
+class Ngrams {
+    static sum(ngrams) {
+        const m = new Map()
+        for (var i = 0; i < ngrams.length; i++) {
+            for (const ngram of ngrams[i]) {
+                if (!m.has(ngram.s)) { m.set(ngram.s, 0) }
+                m.set(ngram.s, m.get(ngram.s) + ngram.indexes.size)
+            }
+        }
+        return [...m].sort((a, b) => b[1] - a[1])
+    }
+}
+
+String.prototype.ngrams = function(length, min = 1, sliding = true, repeats = false) {
+    const ngrams = new Map()
+    for (var i = 0; i <= this.length - length; i += sliding ? 1 : length) {
+        const ngram = this.slice(i, i + length)
+        if (repeats && new Set(ngram).size > 1) { continue }
+        if (!ngrams.has(ngram)) { ngrams.set(ngram, new Ngram(ngram) )}
+        ngrams.get(ngram).indexes.add(i)
+    }
+    return [...ngrams.values()].filter(v => v.indexes.size >= min).sort((a,b) => b.indexes.size - a.indexes.size)
 }
 
 class Isomorph {
@@ -1165,6 +1457,25 @@ class Chi {
     }
 }
 
+class Counts {
+    constructor() {
+        this.map = new Map()
+    }
+
+    add(v, n = 1) {
+        if (!this.map.has(v)) { this.map.set(v, 0) }
+        this.map.set(v, this.map.get(v) + n)
+    }
+
+    get(v) {
+        return this.map.get(v)
+    }
+
+    sort(filter = (v) => true) {
+        return Array.from(this.map).sort((a,b) => b[1] - a[1]).filter(v => filter(v))
+    }
+}
+
 Array.prototype.nth = function(n, offset = 0) {
     return this.slice(offset).filter((_, i) => (i) % n === 0);
 }
@@ -1245,4 +1556,22 @@ String.prototype.differences = function() {
 
 String.prototype.map = function(f) {
     return this.split("").map(f)
+}
+
+String.prototype.step = function (n) {
+    const step = []
+    for (var i = 0, j = 0, k = 1; i < this.length; i++, j += n) {
+        // console.log(j, j / this.length)
+        if (j >= this.length) { j = k++ }
+        step.push(this[j % this.length])
+    }
+    return step.join("")
+}
+
+String.prototype.frequencies = function () {
+    return new Frequencies(this)
+}
+
+String.prototype.filter = function(az = az26) {
+    return this.split("").filter(v => az.includes(v)).join("")
 }

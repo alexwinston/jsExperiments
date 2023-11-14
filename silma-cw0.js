@@ -112,6 +112,53 @@ class Ngrams {
     console.log(Isomorphs.shared(["W03IM479N8EL3Q3FGXAUW", "8CFUYGJLZKQXF2FRS9M68"].map(v => v.isomorphs(21))))
 }
 
+function bigram(ct) {
+    const bigram = []
+    for (var i = 0; i < ct[0].length; i++) {
+      const s = ct[0][i] + ct[1][i]
+      bigram.push(String.fromCharCode(parseInt(s, 5) + 64))
+    }
+    return bigram.join("")
+  }
+
+// https://discordapp.com/channels/453998283174576133/817530812454010910/1152446108212137997
+{
+    const ct = [
+        ["223213143444012301422234443102123223413140231224143201313444342",
+            "232120434113223421123041134432122103440431221234032124304114410"]
+    ]
+    const m = decode(1, [0, 1, 2, 3, 4], az125, ct)[0]
+    console.log("m", m)
+    console.log(new Frequencies(m, az125).substitute())
+    console.log(new Kasiski("IRAOTHEYUSZASOEEHBJWNCMQTKNAILPRDVXFETLG").key(9))
+    console.log(Vigenere.decrypt("IRAOTHEYUSZASOEEHBJWNCMQTKNAILPRDVXFETLG", "ERHOAQRTN"))
+
+    console.log(m.map(v => (v.charCodeAt(0)).toString(5).padStart(3, '0')))
+    console.log(new Trifid2(5, az125).decrypt(m, 2))
+    console.log(new Trifid2(5, az125).decrypt(m, 3))
+    console.log(new Trifid2(5, az125).decrypt(m, 4))
+    console.log(new Trifid2(5, az125).decrypt(m, 5))
+
+    const az = az25
+    const levels = Caesar.levels(m.map(v => v.charCodeAt(0)), 5, az)
+    console.log("levels", levels)
+    console.log(m.map(v => az[v.charCodeAt(0) % az.length]).join(""))
+
+    const pt = Caesar.arrange(levels, az)
+    console.log(pt)
+    console.log(pt.ic(2, 15))
+    console.log(new Frequencies(pt, az).substitute())
+
+    const ct_az = bigram(ct[0])
+    console.log("ct_az", ct_az)
+    console.log(ct_az.ic(2, 25))
+    console.log(new Frequencies(ct_az))
+    console.log("TNSDMFOIAEEIRMNARHETNLAEEIAOWTHTSDLGCOFOIPTSHTNCUISDROGUAEECAEL".chunk(6).join("\n"))
+    console.log(new Frequencies("LMQKGOIWSUUWBGMSBFULMJSUUWSICLFLQKJRXIOIWALQFLMXEWQKBIRESUUXSUJ").substitute())
+    console.log(new Kasiski("TNSDMFOIAEEIRMNARHETNLAEEIAOWTHTSDLGCOFOIPTSHTNCUISDROGUAEECAEL").key(3))
+    console.log(Vigenere.decrypt("TNSDMFOIAEEIRMNARHETNLAEEIAOWTHTSDLGCOFOIPTSHTNCUISDROGUAEECAEL", "PPO"))
+}
+
 // TODO https://discord.com/channels/453998283174576133/817530812454010910/1126072344272707724
 
 // TODO https://discord.com/channels/453998283174576133/817530812454010910/949479453766062152
